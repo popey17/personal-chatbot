@@ -67,13 +67,15 @@ const ChatPage = () => {
         content: response.data.answer,
         matches: response.data.matches 
       }]);
-    } catch {
-
+    } catch (error) {
+      console.error('Chat error:', error);
+      console.error('Attempted URL:', `${API_BASE_URL}/search`);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        content: 'Sorry, I encountered an error connecting to the service.' 
+        content: `Sorry, I encountered an error connecting to the service. (URL: ${API_BASE_URL}/search)` 
       }]);
     } finally {
+
       setIsLoading(false);
     }
   };
