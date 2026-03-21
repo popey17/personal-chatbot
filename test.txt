@@ -1,0 +1,3 @@
+This is a test document. It contains some words that should be extracted and potentially chunked if it were longer. 
+For now, we are just testing the basic upload and extraction functionality.
+Word1 Word2 Word3 Word4 Word5 Word6 Word7 Word8 Word9 Word10.
