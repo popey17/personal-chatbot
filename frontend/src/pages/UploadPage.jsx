@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Trash2 } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const UploadPage = () => {
+
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState('idle'); // idle, uploading, success, error
   const [message, setMessage] = useState('');
@@ -12,7 +15,8 @@ const UploadPage = () => {
   const fetchDocuments = async () => {
     setIsLoadingDocs(true);
     try {
-      const response = await axios.get('http://localhost:5001/api/v1/upload');
+      const response = await axios.get(`${API_BASE_URL}/upload`);
+
       setDocuments(response.data);
     } catch (error) {
       console.error('Failed to fetch docs:', error);
@@ -25,7 +29,8 @@ const UploadPage = () => {
     if (!window.confirm('Are you sure you want to delete this document? All associated AI context will be removed.')) return;
     
     try {
-      await axios.delete(`http://localhost:5001/api/v1/upload/${id}`);
+      await axios.delete(`${API_BASE_URL}/upload/${id}`);
+
       fetchDocuments();
     } catch (error) {
       console.error('Delete failed:', error);
@@ -50,7 +55,8 @@ const UploadPage = () => {
     formData.append('file', file);
 
     try {
-      await axios.post('http://localhost:5001/api/v1/upload', formData, {
+      await axios.post(`${API_BASE_URL}/upload`, formData, {
+
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setStatus('success');

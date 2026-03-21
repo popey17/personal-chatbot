@@ -2,7 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { Send, User, Bot, Loader2, Info } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const ChatPage = () => {
+
   const [messages, setMessages] = useState([
     { role: 'ai', content: 'Hello! I am LeoDroid. I can answer questions based on your documents. How can I help you today?' }
   ]);
@@ -52,7 +55,8 @@ const ChatPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5001/api/v1/search', {
+      const response = await axios.post(`${API_BASE_URL}/search`, {
+
         query: userMsg,
         match_threshold: 0.4,
         match_count: 3
