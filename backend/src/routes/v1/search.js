@@ -1,11 +1,11 @@
 import express from 'express';
-import { generateEmbedding } from '../../utils/openai.js';
+import { generateEmbedding, generateChatResponse } from '../../utils/openai.js';
 import { supabase } from '../../utils/supabaseClient.js';
 
 const router = express.Router();
 
 /**
- * Handle similarity search queries
+ * Handle similarity search queries and generate AI answer
  * POST /api/v1/search
  * Body: { query, match_threshold, match_count }
  */
@@ -32,15 +32,23 @@ router.post('/', async (req, res) => {
       return res.status(500).json({ error: `Search failed: ${error.message}` });
     }
 
-    // 3. Return matches
+    // 3. Generate AI answer using retrieved context
+    const context = (matches && matches.length > 0) 
+      ? matches.map(match => match.content).join('\n---\n')
+      : 'No relevant document context found.';
+      
+    const answer = await generateChatResponse(query, context);
+
+    // 4. Return answer and matches
     res.json({
       query,
-      matchCount: matches.length,
-      matches: matches.map(match => ({
+      answer,
+      matchCount: matches ? matches.length : 0,
+      matches: matches ? matches.map(match => ({
         content: match.content,
         similarity: match.similarity,
         metadata: match.metadata,
-      }))
+      })) : []
     });
 
   } catch (error) {
