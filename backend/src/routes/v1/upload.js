@@ -31,8 +31,8 @@ router.post('/', (req, res) => {
     try {
       const { buffer, originalname, mimetype } = req.file;
       
-      // 3. Process File (Extract + Chunk)
-      const data = await processFile(buffer, mimetype);
+      // 3. Process File (Extract + Chunk + Embed + Store)
+      const data = await processFile(buffer, mimetype, originalname);
 
       res.json({
         filename: originalname,
