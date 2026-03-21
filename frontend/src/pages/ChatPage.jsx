@@ -16,6 +16,32 @@ const ChatPage = () => {
     }
   }, [messages]);
 
+  const renderMessageContent = (content) => {
+    // Regex for URLs and Emails
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g;
+    const parts = content.split(urlRegex);
+    
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        const isEmail = part.includes('@') && !part.startsWith('http');
+        const href = isEmail ? `mailto:${part}` : (part.startsWith('www') ? `https://${part}` : part);
+        return (
+          <a 
+            key={index} 
+            href={href} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="chat-link"
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -37,7 +63,8 @@ const ChatPage = () => {
         content: response.data.answer,
         matches: response.data.matches 
       }]);
-    } catch (error) {
+    } catch {
+
       setMessages(prev => [...prev, { 
         role: 'ai', 
         content: 'Sorry, I encountered an error connecting to the service.' 
@@ -57,8 +84,9 @@ const ChatPage = () => {
             </div>
             <div className="message-content">
               <div className="bubble">
-                {msg.content}
+                {renderMessageContent(msg.content)}
               </div>
+
               {msg.matches && msg.matches.length > 0 && (
                 <div className="sources animate-fade">
                   <div className="source-label"><Info size={12} /> References:</div>
@@ -119,6 +147,18 @@ const ChatPage = () => {
         .sources { margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px; }
         .source-label { display: flex; align-items: center; gap: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
         .source-item { padding: 8px; border-radius: var(--radius-sm); background: rgba(255, 255, 255, 0.03); border-left: 2px solid var(--primary); font-style: italic; }
+        .chat-link { 
+          color: inherit; 
+          text-decoration: underline; 
+          text-decoration-thickness: 1px; 
+          text-underline-offset: 2px;
+          font-weight: 500;
+          transition: opacity 0.2s;
+        }
+        .chat-link:hover { opacity: 0.8; }
+        .message-wrapper.ai .chat-link { color: var(--primary); }
+        .message-wrapper.user .chat-link { color: white; }
+
         .typing-dots { display: flex; gap: 4px; padding: 4px; }
         .typing-dots span { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1s infinite; }
         .typing-dots span:nth-child(2) { animation-delay: 0.2s; }

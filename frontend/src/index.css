@@ -112,6 +112,11 @@ h1, h2, h3, h4 {
   min-height: 100vh;
 }
 
+.app-container.with-sidebar .main-content {
+  margin-left: 260px;
+}
+
+
 .nav-sidebar {
   width: 260px;
   height: 100vh;
@@ -131,7 +136,22 @@ h1, h2, h3, h4 {
   margin-bottom: 48px;
 }
 
+/* Guest Top Navigation */
+.guest-nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 70px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 40px;
+  z-index: 90;
+}
+
 .nav-links {
+
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -162,11 +182,12 @@ h1, h2, h3, h4 {
 
 .main-content {
   flex-grow: 1;
-  margin-left: 260px;
   padding: 40px;
   display: flex;
   justify-content: center;
+  transition: all 0.3s ease;
 }
+
 
 .content-inner {
   width: 100%;
