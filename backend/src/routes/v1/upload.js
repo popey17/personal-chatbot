@@ -1,8 +1,46 @@
 import express from 'express';
 import multer from 'multer';
 import { processFile } from '../../utils/fileProcessor.js';
+import { supabase } from '../../utils/supabaseClient.js';
 
 const router = express.Router();
+
+/**
+ * List all processed documents
+ */
+router.get('/', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('documents')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+    res.status(500).json({ error: 'Failed to fetch document list' });
+  }
+});
+
+/**
+ * Delete a document and its chunks
+ */
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase
+      .from('documents')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    res.json({ message: 'Document deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting document:', error);
+    res.status(500).json({ error: 'Failed to delete document' });
+  }
+});
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
