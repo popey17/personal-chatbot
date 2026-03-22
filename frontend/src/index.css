@@ -109,7 +109,7 @@ h1, h2, h3, h4 {
 /* Layout */
 .app-container {
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-container.with-sidebar .main-content {
@@ -124,7 +124,7 @@ h1, h2, h3, h4 {
 
 .nav-sidebar {
   width: 260px;
-  height: 100vh;
+  height: 100dvh;
   position: fixed;
   left: 0;
   top: 0;
