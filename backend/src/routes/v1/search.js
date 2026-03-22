@@ -1,5 +1,5 @@
 import express from 'express';
-import { generateEmbedding, generateChatResponse } from '../../utils/openai.js';
+import { generateEmbedding, generateChatResponse } from '../../utils/aiService.js';
 import { supabase } from '../../utils/supabaseClient.js';
 
 const router = express.Router();
@@ -11,7 +11,7 @@ const router = express.Router();
  */
 router.post('/', async (req, res) => {
   try {
-    const { query, history = [], match_threshold = 0.5, match_count = 5 } = req.body;
+    const { query, history = [], match_threshold = 0.5, match_count = 5, service = 'openai' } = req.body;
 
 
     if (!query || typeof query !== 'string') {
@@ -45,7 +45,7 @@ router.post('/', async (req, res) => {
       ? matches.map(match => match.content).join('\n---\n')
       : 'No relevant document context found.';
       
-    const answer = await generateChatResponse(query, context, history);
+    const answer = await generateChatResponse(query, context, history, service);
 
 
     // 4. Return answer and matches

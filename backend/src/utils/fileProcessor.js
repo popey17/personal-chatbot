@@ -1,6 +1,6 @@
 import { createRequire } from 'module';
 import { chunkText } from './textProcessor.js';
-import { generateEmbedding } from './openai.js';
+import { generateEmbedding } from './aiService.js';
 import { supabase } from './supabaseClient.js';
 
 const require = createRequire(import.meta.url);

@@ -4,9 +4,11 @@ import { Upload, MessageSquare, ShieldCheck, LogOut, LogIn } from 'lucide-react'
 import ChatPage from './pages/ChatPage';
 import UploadPage from './pages/UploadPage';
 import LoginPage from './pages/LoginPage';
+import SettingsPage from './pages/SettingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthProvider';
 import { useAuth } from './context/AuthContext';
+import { SettingsProvider } from './context/SettingsContext';
 
 
 function AppContent() {
@@ -40,6 +42,10 @@ function AppContent() {
               <Upload size={20} />
               <span>Documents</span>
             </NavLink>
+            <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+              <ShieldCheck size={20} />
+              <span>Settings</span>
+            </NavLink>
           </div>
           
           <div className="nav-footer">
@@ -71,6 +77,7 @@ function AppContent() {
                 <UploadPage />
               </ProtectedRoute>
             } />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </div>
       </main>
@@ -109,7 +116,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppContent />
+        <SettingsProvider>
+          <AppContent />
+        </SettingsProvider>
       </AuthProvider>
     </Router>
   );
