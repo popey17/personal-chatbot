@@ -1,17 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { Send, User, Bot, Loader2, Info } from 'lucide-react';
+import { Send, User, Bot, Loader2, Info, Sparkles } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const ChatPage = () => {
-
-  const [messages, setMessages] = useState([
-    { role: 'ai', content: 'Hello! I am LeoDroid. I can answer questions based on your documents. How can I help you today?' }
-  ]);
+  useAuth(); // Removed 'user' as it was unused
+  const { service } = useSettings(); // Removed 'loading: settingsLoading'
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([
+        { role: 'ai', content: 'Hello! I am LeoDroid. I can answer questions based on your documents. How can I help you today?' }
+      ]);
+    }
+  }, [messages.length]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -20,50 +29,72 @@ const ChatPage = () => {
   }, [messages]);
 
   const renderMessageContent = (content) => {
-    // 1. Separate Knowledge Note if present
     const noteMatch = content.match(/\[KNOWLEDGE_NOTE\](.*?)\[\/KNOWLEDGE_NOTE\]/);
     const mainContent = content.replace(/\[KNOWLEDGE_NOTE\].*?\[\/KNOWLEDGE_NOTE\]/, '').trim();
     const noteContent = noteMatch ? noteMatch[1] : null;
 
-    // 2. Helper for links (URLs/Emails)
-    const renderWithLinks = (text) => {
-      const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g;
-      const parts = text.split(urlRegex);
-      
-      return parts.map((part, index) => {
-        if (part.match(urlRegex)) {
-          const isEmail = part.includes('@') && !part.startsWith('http');
-          const href = isEmail ? `mailto:${part}` : (part.startsWith('www') ? `https://${part}` : part);
-          return (
-            <a 
-              key={index} 
-              href={href} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="chat-link"
-            >
-              {part}
-            </a>
-          );
-        }
-        return part;
+    const renderFormattedText = (text) => {
+      if (!text) return null;
+
+      // 1. Split by lines to handle bullet points
+      const lines = text.split('\n');
+
+      return lines.map((line, lineIdx) => {
+        const trimmedLine = line.trim();
+        const isBullet = trimmedLine.startsWith('* ') || trimmedLine.startsWith('- ');
+        const lineContent = isBullet ? trimmedLine.substring(2) : line;
+
+        // 2. Process inline formatting (Bold, Links)
+        const combinedRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+|\*\*.*?\*\*)/g;
+        const parts = lineContent.split(combinedRegex);
+        
+        const renderedParts = parts.filter(Boolean).map((part, partIdx) => {
+          // Handle Bold
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={partIdx} className="bold-text">{part.slice(2, -2)}</strong>;
+          }
+          
+          // Handle Links
+          const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g;
+          if (part.match(urlRegex)) {
+            const isEmail = part.includes('@') && !part.startsWith('http');
+            const href = isEmail ? `mailto:${part}` : (part.startsWith('www') ? `https://${part}` : part);
+            return (
+              <a 
+                key={partIdx} 
+                href={href} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="chat-link"
+              >
+                {part}
+              </a>
+            );
+          }
+          return part;
+        });
+
+        return (
+          <div key={lineIdx} className={isBullet ? 'bullet-line' : 'chat-line'}>
+            {isBullet && <span className="bullet-dot">•</span>}
+            <span className="line-text">{renderedParts}</span>
+          </div>
+        );
       });
     };
 
     return (
       <>
-        <div className="main-text">{renderWithLinks(mainContent)}</div>
+        <div className="main-text">{renderFormattedText(mainContent)}</div>
         {noteContent && (
           <div className="knowledge-note animate-fade-in">
-            <Info size={14} />
-            <span>{renderWithLinks(noteContent)}</span>
+            <span className="info-icon"><Info size={14} /></span>
+            <span>{renderFormattedText(noteContent)}</span>
           </div>
         )}
       </>
     );
   };
-
-
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -80,15 +111,13 @@ const ChatPage = () => {
         content: m.content
       }));
 
-
       const response = await axios.post(`${API_BASE_URL}/search`, {
         query: userMsg,
         history,
         match_threshold: 0.4,
-        match_count: 5
-
+        match_count: 5,
+        service: service
       });
-
 
       setMessages(prev => [...prev, { 
         role: 'ai', 
@@ -97,13 +126,11 @@ const ChatPage = () => {
       }]);
     } catch (error) {
       console.error('Chat error:', error);
-      console.error('Attempted URL:', `${API_BASE_URL}/search`);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        content: `Sorry, I encountered an error connecting to the service. (URL: ${API_BASE_URL}/search)` 
+        content: `Sorry, I encountered an error connecting to the service.` 
       }]);
     } finally {
-
       setIsLoading(false);
     }
   };
@@ -146,18 +173,20 @@ const ChatPage = () => {
         )}
       </div>
 
-      <form className="chat-input-area" onSubmit={handleSend}>
-        <input 
-          type="text" 
-          placeholder="Ask LeoDroid something..." 
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={isLoading}
-        />
-        <button type="submit" className="btn btn-primary" disabled={!input.trim() || isLoading}>
-          <Send size={20} />
-        </button>
-      </form>
+      <div className="chat-footer">
+        <form className="chat-input-area" onSubmit={handleSend}>
+          <input 
+            type="text" 
+            placeholder="Ask LeoDroid something..." 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={isLoading}
+          />
+          <button type="submit" className="btn btn-primary" disabled={!input.trim() || isLoading}>
+            <Send size={20} />
+          </button>
+        </form>
+      </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
         .chat-container { 
@@ -182,24 +211,16 @@ const ChatPage = () => {
         .bubble { padding: 14px 20px; border-radius: var(--radius-md); font-size: 0.95rem; }
         .message-wrapper.ai .bubble { background: var(--bg-chat-ai); color: var(--text-main); border-bottom-left-radius: 2px; }
         .message-wrapper.user .bubble { background: var(--primary); color: white; border-bottom-right-radius: 2px; }
-        .chat-input-area { padding: 24px; border-top: 1px solid var(--border); display: flex; gap: 12px; }
+        
+        .chat-footer { border-top: 1px solid var(--border); background: rgba(255, 255, 255, 0.01); }
+        .service-indicator { padding: 8px 24px; display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--text-muted); opacity: 0.8; }
+        .chat-input-area { padding: 16px 24px; display: flex; gap: 12px; }
         .chat-input-area input { flex-grow: 1; background: var(--bg-main); border: 1px solid var(--border); padding: 12px 20px; border-radius: var(--radius-md); color: var(--text-main); outline: none; }
         .chat-input-area input:focus { border-color: var(--primary); }
+        
         .sources { margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px; }
         .source-label { display: flex; align-items: center; gap: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
         .source-item { padding: 8px; border-radius: var(--radius-sm); background: rgba(255, 255, 255, 0.03); border-left: 2px solid var(--primary); font-style: italic; }
-        .chat-link { 
-          color: inherit; 
-          text-decoration: underline; 
-          text-decoration-thickness: 1px; 
-          text-underline-offset: 2px;
-          font-weight: 500;
-          transition: opacity 0.2s;
-        }
-        .chat-link:hover { opacity: 0.8; }
-        .message-wrapper.ai .chat-link { color: var(--primary); }
-        .message-wrapper.user .chat-link { color: white; }
-
         .knowledge-note { 
           margin-top: 12px; 
           padding: 10px 14px; 
@@ -213,24 +234,20 @@ const ChatPage = () => {
           gap: 10px;
           line-height: 1.4;
         }
-        .knowledge-note span { flex: 1; }
-        .ai .knowledge-note .chat-link { color: var(--text-main); font-weight: 600; }
-
+        .info-icon { flex-shrink: 0; margin-top: 2px; color: var(--primary); }
         .typing-dots { display: flex; gap: 4px; padding: 4px; }
-
         .typing-dots span { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1s infinite; }
-        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 
         @media (max-width: 768px) {
           .chat-messages { padding: 30px 8px; gap: 16px;}
-          .chat-input-area{ padding: 16px}
-          .message-wrapper { gap: 8px}
-          .bubble { padding: 8px 16px; }
+          .chat-input-area{ padding: 12px 8px}
         }
-
-        
+        .bullet-line { display: flex; gap: 8px; margin-bottom: 6px; padding-left: 4px; align-items: flex-start; }
+        .bullet-dot { color: var(--primary); font-weight: bold; flex-shrink: 0; margin-top: 2px; }
+        .chat-line { margin-bottom: 6px; line-height: 1.6; }
+        .bold-text { color: var(--primary); font-weight: 700; }
+        .line-text { flex: 1; }
       `}} />
     </div>
   );
