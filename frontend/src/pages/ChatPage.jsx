@@ -20,29 +20,49 @@ const ChatPage = () => {
   }, [messages]);
 
   const renderMessageContent = (content) => {
-    // Regex for URLs and Emails
-    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g;
-    const parts = content.split(urlRegex);
-    
-    return parts.map((part, index) => {
-      if (part.match(urlRegex)) {
-        const isEmail = part.includes('@') && !part.startsWith('http');
-        const href = isEmail ? `mailto:${part}` : (part.startsWith('www') ? `https://${part}` : part);
-        return (
-          <a 
-            key={index} 
-            href={href} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="chat-link"
-          >
-            {part}
-          </a>
-        );
-      }
-      return part;
-    });
+    // 1. Separate Knowledge Note if present
+    const noteMatch = content.match(/\[KNOWLEDGE_NOTE\](.*?)\[\/KNOWLEDGE_NOTE\]/);
+    const mainContent = content.replace(/\[KNOWLEDGE_NOTE\].*?\[\/KNOWLEDGE_NOTE\]/, '').trim();
+    const noteContent = noteMatch ? noteMatch[1] : null;
+
+    // 2. Helper for links (URLs/Emails)
+    const renderWithLinks = (text) => {
+      const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/g;
+      const parts = text.split(urlRegex);
+      
+      return parts.map((part, index) => {
+        if (part.match(urlRegex)) {
+          const isEmail = part.includes('@') && !part.startsWith('http');
+          const href = isEmail ? `mailto:${part}` : (part.startsWith('www') ? `https://${part}` : part);
+          return (
+            <a 
+              key={index} 
+              href={href} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="chat-link"
+            >
+              {part}
+            </a>
+          );
+        }
+        return part;
+      });
+    };
+
+    return (
+      <>
+        <div className="main-text">{renderWithLinks(mainContent)}</div>
+        {noteContent && (
+          <div className="knowledge-note animate-fade-in">
+            <Info size={14} />
+            <span>{renderWithLinks(noteContent)}</span>
+          </div>
+        )}
+      </>
+    );
   };
+
 
 
   const handleSend = async (e) => {
@@ -55,12 +75,20 @@ const ChatPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/search`, {
+      const history = messages.slice(-5).map(m => ({
+        role: m.role === 'ai' ? 'assistant' : m.role,
+        content: m.content
+      }));
 
+
+      const response = await axios.post(`${API_BASE_URL}/search`, {
         query: userMsg,
+        history,
         match_threshold: 0.4,
-        match_count: 3
+        match_count: 5
+
       });
+
 
       setMessages(prev => [...prev, { 
         role: 'ai', 
@@ -172,7 +200,24 @@ const ChatPage = () => {
         .message-wrapper.ai .chat-link { color: var(--primary); }
         .message-wrapper.user .chat-link { color: white; }
 
+        .knowledge-note { 
+          margin-top: 12px; 
+          padding: 10px 14px; 
+          background: rgba(255, 255, 255, 0.05); 
+          border-left: 3px solid var(--primary); 
+          border-radius: var(--radius-sm); 
+          font-size: 0.8rem; 
+          color: var(--text-muted);
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          line-height: 1.4;
+        }
+        .knowledge-note span { flex: 1; }
+        .ai .knowledge-note .chat-link { color: var(--text-main); font-weight: 600; }
+
         .typing-dots { display: flex; gap: 4px; padding: 4px; }
+
         .typing-dots span { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1s infinite; }
         .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
         .typing-dots span:nth-child(3) { animation-delay: 0.4s; }

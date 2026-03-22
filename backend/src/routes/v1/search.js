@@ -11,14 +11,22 @@ const router = express.Router();
  */
 router.post('/', async (req, res) => {
   try {
-    const { query, match_threshold = 0.5, match_count = 5 } = req.body;
+    const { query, history = [], match_threshold = 0.5, match_count = 5 } = req.body;
+
 
     if (!query || typeof query !== 'string') {
       return res.status(400).json({ error: 'Please provide a search query as a string.' });
     }
 
-    // 1. Generate embedding for the query
-    const embedding = await generateEmbedding(query);
+    // 1. Query Expansion for better RAG retrieval (Leo -> Aung Myat Kyaw)
+    let expandedQuery = query;
+    if (/leo/i.test(query) && !/aung myat kyaw/i.test(query)) {
+      expandedQuery = `${query} Aung Myat Kyaw`;
+    }
+
+    // 2. Generate embedding for the expanded query
+    const embedding = await generateEmbedding(expandedQuery);
+
 
     // 2. Call Supabase RPC for similarity search
     const { data: matches, error } = await supabase.rpc('match_document_sections', {
@@ -37,7 +45,8 @@ router.post('/', async (req, res) => {
       ? matches.map(match => match.content).join('\n---\n')
       : 'No relevant document context found.';
       
-    const answer = await generateChatResponse(query, context);
+    const answer = await generateChatResponse(query, context, history);
+
 
     // 4. Return answer and matches
     res.json({
