@@ -138,7 +138,14 @@ const ChatPage = () => {
           flex-direction: column; 
           border-radius: var(--radius-lg);
           overflow: hidden;
+          transition: all 0.3s ease;
         }
+        .guest-mode .chat-container {
+          height: 100vh;
+          border-radius: 0;
+          border: none;
+        }
+
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
         .message-wrapper { display: flex; gap: 16px; max-width: 85%; }
         .message-wrapper.user { align-self: flex-end; flex-direction: row-reverse; }
@@ -170,6 +177,15 @@ const ChatPage = () => {
         .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
         .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+        @media (max-width: 768px) {
+          .chat-messages { padding: 30px 8px; gap: 16px;}
+          .chat-input-area{ padding: 16px}
+          .message-wrapper { gap: 8px}
+          .bubble { padding: 8px 16px; }
+        }
+
+        
       `}} />
     </div>
   );

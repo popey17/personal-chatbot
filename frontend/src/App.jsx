@@ -20,17 +20,8 @@ function AppContent() {
 
   return (
     <div className={`app-container ${user ? 'with-sidebar' : 'guest-mode'}`}>
-      {/* Guest Navigation (Top Right Login) */}
-      {!user && (
-        <header className="guest-nav animate-fade">
-          <NavLink to="/login" className="action-btn login" style={{ width: 'auto' }}>
-            <LogIn size={18} />
-            <span>Admin Login</span>
-          </NavLink>
-        </header>
-      )}
-
       {/* Sidebar Navigation */}
+
       {user && (
         <nav className="nav-sidebar glass">
           <div className="logo-section">
