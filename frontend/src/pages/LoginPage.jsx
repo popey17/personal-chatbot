@@ -88,7 +88,7 @@ const LoginPage = () => {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .auth-page { height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-main); padding: 20px; }
+        .auth-page { height: 100dvh; display: flex; align-items: center; justify-content: center; background: var(--bg-main); padding: 20px; }
         .auth-card { width: 100%; max-width: 440px; padding: 48px; border-radius: var(--radius-lg); text-align: center; }
         .auth-header h1 { margin: 16px 0 8px; font-size: 1.75rem; }
         .auth-header p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 32px; }

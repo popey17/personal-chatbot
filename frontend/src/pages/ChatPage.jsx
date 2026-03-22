@@ -161,7 +161,7 @@ const ChatPage = () => {
 
       <style dangerouslySetInnerHTML={{ __html: `
         .chat-container { 
-          height: calc(100vh - 120px); 
+          height: calc(100dvh - 120px); 
           display: flex; 
           flex-direction: column; 
           border-radius: var(--radius-lg);
@@ -169,7 +169,7 @@ const ChatPage = () => {
           transition: all 0.3s ease;
         }
         .guest-mode .chat-container {
-          height: 100vh;
+          height: 100dvh;
           border-radius: 0;
           border: none;
         }
