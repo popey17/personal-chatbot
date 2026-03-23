@@ -71,8 +71,8 @@ export const processFile = async (buffer, mimetype, filename) => {
     documentId = newDoc.id;
   }
 
-  // 3. Chunk Text (300 words per chunk)
-  const chunks = chunkText(extractedText, 300);
+  // 3. Chunk Text (500 words per chunk, semantic-first)
+  const chunks = chunkText(extractedText, 500);
 
   // 4. Generate Embeddings
   const processedChunks = await Promise.all(

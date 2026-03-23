@@ -34,10 +34,13 @@ const ChatPage = () => {
     const noteContent = noteMatch ? noteMatch[1] : null;
 
     const renderFormattedText = (text) => {
-      if (!text) return null;
+    if (!text) return null;
 
-      // 1. Split by lines to handle bullet points
-      const lines = text.split('\n');
+    // 0. Preliminary cleanup: Replace <br> and <br/> with \n for line splitting
+    const normalizedText = text.replace(/<br\s*\/?>/gi, '\n');
+
+    // 1. Split by lines to handle bullet points
+    const lines = normalizedText.split('\n');
 
       return lines.map((line, lineIdx) => {
         const trimmedLine = line.trim();
