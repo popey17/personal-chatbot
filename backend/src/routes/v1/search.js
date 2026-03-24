@@ -18,9 +18,18 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Please provide a search query as a string.' });
     }
 
-    // 1. Query Expansion for better RAG retrieval (Leo -> Aung Myat Kyaw)
+    // 1. Query Expansion for better RAG retrieval
     let expandedQuery = query;
-    if (/leo/i.test(query) && !/aung myat kyaw/i.test(query)) {
+    
+    // Check if the query contains pronouns referring to the subject (Leo)
+    const hasPronoun = /\b(he|him|his)\b/i.test(query);
+    const hasLeo = /\bleo\b/i.test(query);
+    const hasAung = /aung myat/i.test(query);
+
+    // Provide context if the user uses pronouns without explicit names
+    if (hasPronoun && !hasLeo && !hasAung) {
+      expandedQuery = `${query} Leo Aung Myat Kyaw`;
+    } else if (hasLeo && !hasAung) {
       expandedQuery = `${query} Aung Myat Kyaw`;
     }
 
