@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Send, User, Bot, Loader2, Info, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
+import ServerNotice from '../components/ServerNotice';
+
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -174,7 +176,14 @@ const ChatPage = () => {
             </div>
           </div>
         )}
+        {messages.length < 3 && (
+          <div className="notice-chat-wrapper">
+            <ServerNotice />
+          </div>
+        )}
+
       </div>
+
 
       <div className="chat-footer">
         <form className="chat-input-area" onSubmit={handleSend}>
@@ -206,7 +215,7 @@ const ChatPage = () => {
           border: none;
         }
 
-        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; position: relative; }
         .message-wrapper { display: flex; gap: 16px; max-width: 85%; }
         .message-wrapper.user { align-self: flex-end; flex-direction: row-reverse; }
         .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--border); flex-shrink: 0; }
@@ -241,8 +250,17 @@ const ChatPage = () => {
         .typing-dots { display: flex; gap: 4px; padding: 4px; }
         .typing-dots span { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        
+        .notice-chat-wrapper {
+          margin-top: auto;
+          padding: 8px 0;
+          display: flex;
+          justify-content: center;
+          animation: fadeIn 0.8s ease-out;
+        }
 
         @media (max-width: 768px) {
+
           .chat-messages { padding: 30px 8px; gap: 16px;}
           .chat-input-area{ padding: 12px 8px}
         }
